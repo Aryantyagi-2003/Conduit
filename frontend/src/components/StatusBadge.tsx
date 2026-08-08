@@ -12,7 +12,10 @@ export function FreshnessBadge({ status }: { status: FreshnessStatus }) {
     <span
       className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium ${meta.bg} ${meta.text}`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} aria-hidden />
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${meta.dot} ${status === "fresh" ? "freshness-glow" : ""}`}
+        aria-hidden
+      />
       {meta.label}
     </span>
   );
