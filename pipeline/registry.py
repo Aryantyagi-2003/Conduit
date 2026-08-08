@@ -7,6 +7,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from pipeline.sources.base import Source, SourceConfig
+from pipeline.sources.crypto import CryptoSource
 from pipeline.sources.weather import WeatherSource
 
 SourceFactory = Callable[[SourceConfig], Source]
@@ -24,6 +25,14 @@ SOURCES: dict[str, tuple[SourceFactory, SourceConfig]] = {
                     {"location_id": "tokyo", "latitude": 35.6762, "longitude": 139.6503},
                 ]
             },
+        ),
+    ),
+    "crypto": (
+        CryptoSource,
+        SourceConfig(
+            source_id="crypto",
+            interval_seconds=120,
+            extra={"assets": {"bitcoin": "BTC", "ethereum": "ETH", "solana": "SOL"}},
         ),
     ),
 }
