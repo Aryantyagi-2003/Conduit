@@ -10,6 +10,13 @@ engineering and DevOps: ETL correctness, idempotency, observability,
 scheduling, and a pluggable source abstraction that's proven, not just
 claimed.
 
+![Conduit dashboard — live pipeline health, per-source charts, and run history](docs/dashboard.png)
+
+*Real screenshot, real data — the weather tile above three real cities,
+crypto and GitHub tiles, and the run-history ledger are all pulling live
+from Open-Meteo, CoinGecko, and the GitHub REST API through the actual
+running app. Not a mockup.*
+
 ## Contents
 
 - [Architecture](#architecture)
@@ -283,23 +290,58 @@ which field to chart).
 
 ## Frontend
 
-Vite + React + TypeScript + Tailwind. Deliberately not the "warm paper"
-look from a prior project — cooler and more structured instead: a
-graphite background, one accent color used sparingly, and a three-typeface
-system used with intent (Fraunces, a serif with real character, for
-stat numbers and the wordmark; Inter for UI chrome; IBM Plex Mono for
-timestamps/IDs/raw data). Status colors are muted/tinted, not saturated
-stock red/green, and always paired with an icon + label — never color
-alone. The categorical chart palette was checked against
-`dataviz/scripts/validate_palette.js` rather than eyeballed.
+Vite + React + TypeScript + Tailwind. Went through two design passes —
+worth being honest about both, since the second one changed real
+structure, not just colors.
 
-Panels:
-- **Pipeline health** — dense table: freshness badge, last run
-  status/age, rows processed, configured interval, and a live countdown
-  (ticking every second) to the next scheduled run
-- **Recent values** — a Recharts time-series small-multiple per source,
-  multi-line by entity (location / asset / repo)
-- **Run history** — filterable by source and status
+**Pass 1** was a dark graphite theme (Fraunces/Inter/IBM Plex Mono,
+three stacked full-width sections: health table, chart row, run-history
+table) — functionally complete but visually generic. **Pass 2**
+("Dusk Sky", current) rebuilt the palette, type, and layout on direct
+feedback that the first pass felt too ordinary:
+
+<img src="docs/masthead-detail.png" alt="Masthead detail: Instrument Serif wordmark, italic tagline, faint layered horizon-arc SVG, and the glowing freshness pulse strip" width="640">
+
+- **Palette** — a warm alabaster base blending into pale sky, one cool
+  indigo accent for primary actions plus one warm terracotta accent used
+  sparingly (the next-run countdown, the active filter-rail tab) — the
+  warm/cool tension is deliberate, meant to read as more considered than
+  a stock light SaaS theme, without leaning on literal weather imagery
+  (no sun icon, no cartoon cloud).
+- **Type** — Instrument Serif for the wordmark and tile headings, Geist
+  + Geist Mono for UI chrome and data/timestamps.
+- **Layout** — an asymmetric bento grid instead of stacked full-width
+  sections: a compact glowing "pulse strip" in the masthead (dots, not a
+  stat-number row) shows fresh/stale/critical at a glance; each source
+  gets one `SourceTile` merging what used to be a separate health-table
+  row and a separate chart tile (hero-sized for weather, compact for
+  crypto/github); run history is a side ledger with a vertical
+  source/status filter rail and its own internal scroll, not a
+  full-width table with dropdowns.
+- One decorative touch: faint layered horizon-arc SVG behind the
+  masthead (`Atmosphere.tsx`, `aria-hidden`, no data) — abstract
+  altitude lines, not a literal sky icon.
+
+Status colors are muted/tinted, not saturated stock red/green, and
+always paired with a dot + label — never color alone. Both the status
+triplet and the chart's categorical triplet (indigo/aqua/violet) were
+re-validated against the light surface with
+`dataviz/scripts/validate_palette.js` after the palette changed, rather
+than eyeballed.
+
+The one animated touch, both passes: the freshness dot gets a very slow
+(3.6s), low-amplitude glow when a source is fresh —
+`prefers-reduced-motion` turns it off. Nothing else animates.
+
+Panels (same functional coverage as the original spec, different
+arrangement):
+- **Pipeline health** — folded into each `SourceTile`: freshness badge,
+  last run status/age, rows processed, and a live countdown (ticking
+  every second) to the next scheduled run
+- **Recent values** — a Recharts time-series per source, multi-line by
+  entity (location / asset / repo), embedded directly in its tile
+- **Run history** — side ledger, filterable by source and status via the
+  vertical rail
 
 ## Running it
 
