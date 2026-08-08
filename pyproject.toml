@@ -1,0 +1,47 @@
+[project]
+name = "conduit"
+version = "0.1.0"
+description = "Self-hosted, containerized data pipeline: extract from public APIs, transform, load into Postgres, expose via FastAPI + dashboard."
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy[asyncio]>=2.0",
+    "asyncpg>=0.29",
+    "alembic>=1.13",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.5",
+    "apscheduler>=3.10",
+    "httpx>=0.27",
+    "python-json-logger>=2.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["pipeline*", "app*"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.7",
+    "mypy>=1.13",
+    "aiosqlite>=0.20",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# FastAPI's Depends()/Query() in defaults is the documented pattern, not a bug.
+extend-ignore = ["B008"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
