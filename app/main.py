@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -12,14 +13,22 @@ from pipeline.scheduler import build_scheduler
 
 logging.basicConfig(level=logging.INFO)
 
+# In docker-compose, the scheduler runs in the dedicated `worker` service
+# (see pipeline/worker.py) so jobs aren't triggered twice. This flag lets
+# `uvicorn app.main:app` still be self-contained for local development
+# without needing a second process running.
+RUN_SCHEDULER_IN_APP = os.environ.get("CONDUIT_RUN_SCHEDULER", "true").lower() == "true"
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
-    scheduler = build_scheduler()
-    scheduler.start()
-    app.state.scheduler = scheduler
+    if RUN_SCHEDULER_IN_APP:
+        scheduler = build_scheduler()
+        scheduler.start()
+        app.state.scheduler = scheduler
     yield
-    scheduler.shutdown()
+    if RUN_SCHEDULER_IN_APP:
+        app.state.scheduler.shutdown()
 
 
 app = FastAPI(title="Conduit", lifespan=lifespan)
