@@ -31,7 +31,23 @@ function pivotByEntity(rows: DataRow[], entityKey: string, metricKey: string): {
   return { points, entities };
 }
 
-export function SourceChart({ sourceId, rows }: { sourceId: string; rows: DataRow[] }) {
+export function SourceChart({
+  sourceId,
+  rows,
+  height = 200,
+  hideHeader = false,
+  bare = false,
+}: {
+  sourceId: string;
+  rows: DataRow[];
+  /** Chart plot height in px -- compact tiles pass a smaller value. */
+  height?: number;
+  /** Omit the internal title row, e.g. when a parent tile already shows it. */
+  hideHeader?: boolean;
+  /** Omit the card wrapper (border/shadow/padding) entirely -- for
+   * embedding directly inside another card. */
+  bare?: boolean;
+}) {
   const display = SOURCE_DISPLAY[sourceId];
   if (!display) return null;
 
@@ -39,22 +55,31 @@ export function SourceChart({ sourceId, rows }: { sourceId: string; rows: DataRo
 
   if (points.length === 0) {
     return (
-      <div className="flex h-56 items-center justify-center rounded-lg border border-border bg-surface text-sm text-text-faint">
+      <div
+        className={
+          bare
+            ? "flex items-center justify-center text-xs text-text-faint"
+            : "flex h-56 items-center justify-center rounded-lg border border-border bg-surface text-sm text-text-faint"
+        }
+        style={bare ? { height } : undefined}
+      >
         No data yet
       </div>
     );
   }
 
-  return (
-    <div className="rounded-lg border border-border bg-surface p-4">
-      <div className="mb-3 flex items-baseline justify-between">
-        <h3 className="text-sm font-medium text-text">{display.label}</h3>
-        <span className="font-data text-xs text-text-faint">
-          {display.metricLabel} ({display.unit || "count"})
-        </span>
-      </div>
+  const content = (
+    <>
+      {!hideHeader && (
+        <div className="mb-3 flex items-baseline justify-between">
+          <h3 className="text-sm font-medium text-text">{display.label}</h3>
+          <span className="font-data text-xs text-text-faint">
+            {display.metricLabel} ({display.unit || "count"})
+          </span>
+        </div>
+      )}
 
-      <ResponsiveContainer width="100%" height={200}>
+      <ResponsiveContainer width="100%" height={height}>
         <LineChart data={points} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
           <XAxis
@@ -120,6 +145,10 @@ export function SourceChart({ sourceId, rows }: { sourceId: string; rows: DataRo
           ))}
         </div>
       )}
-    </div>
+    </>
   );
+
+  if (bare) return content;
+
+  return <div className="rounded-lg border border-border bg-surface p-4">{content}</div>;
 }

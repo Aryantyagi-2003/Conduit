@@ -2,12 +2,11 @@ import { useMemo } from "react";
 import { api } from "./lib/api";
 import { usePolling } from "./hooks/usePolling";
 import { SOURCE_DISPLAY } from "./lib/sourceConfig";
-import { SourceOverviewTable } from "./components/SourceOverviewTable";
-import { SourceChart } from "./components/SourceChart";
+import { SourceTile } from "./components/SourceTile";
+import { PulseStrip } from "./components/PulseStrip";
+import { Atmosphere } from "./components/Atmosphere";
 import { RunHistoryTable } from "./components/RunHistoryTable";
-import type { JobRunOut } from "./lib/types";
-
-const SOURCE_IDS = Object.keys(SOURCE_DISPLAY);
+import type { JobRunOut, SourceOut } from "./lib/types";
 
 function App() {
   const { data: sources, error: sourcesError } = usePolling(() => api.sources(), 10_000);
@@ -24,29 +23,24 @@ function App() {
     return map;
   }, [runs]);
 
-  const totalRowsRecent = useMemo(() => {
-    return (runs ?? []).reduce((sum, r) => sum + (r.rows_loaded ?? 0), 0);
-  }, [runs]);
-
-  const failedRunsRecent = (runs ?? []).filter((r) => r.status === "failed").length;
+  const sourceById = useMemo(() => {
+    const map = new Map<string, SourceOut>();
+    for (const s of sources ?? []) map.set(s.source_id, s);
+    return map;
+  }, [sources]);
 
   return (
     <div className="mx-auto min-h-screen max-w-6xl px-6 py-8">
-      <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
-        <div>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight text-text">Conduit</h1>
-          <p className="mt-1 text-sm text-text-muted">
-            Self-hosted data pipeline — extract, transform, load, observe.
-          </p>
-        </div>
-        <div className="flex gap-6">
-          <Stat label="Sources" value={String(SOURCE_IDS.length)} />
-          <Stat label="Rows (recent runs)" value={totalRowsRecent.toLocaleString()} />
-          <Stat
-            label="Failed runs (recent)"
-            value={String(failedRunsRecent)}
-            tone={failedRunsRecent > 0 ? "critical" : undefined}
-          />
+      <header className="relative mb-8 overflow-hidden rounded-lg border border-border bg-surface/60 px-6 py-6">
+        <Atmosphere />
+        <div className="relative flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="font-serif text-4xl tracking-tight text-text">Conduit</h1>
+            <p className="mt-1 text-sm italic text-text-muted">
+              Self-hosted data pipeline — extract, transform, load, observe.
+            </p>
+          </div>
+          {sources && <PulseStrip sources={sources} />}
         </div>
       </header>
 
@@ -56,60 +50,44 @@ function App() {
         </div>
       )}
 
-      <section className="mb-10">
-        <SectionHeading title="Pipeline health" subtitle="Last run, freshness, and schedule per source" />
-        {sources ? (
-          <SourceOverviewTable sources={sources} latestRunBySource={latestRunBySource} />
-        ) : (
-          <LoadingBlock />
-        )}
-      </section>
-
-      <section className="mb-10">
-        <SectionHeading title="Recent values" subtitle="Latest observations per source" />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <SourceChart sourceId="weather" rows={weatherRows ?? []} />
-          <SourceChart sourceId="crypto" rows={cryptoRows ?? []} />
-          <SourceChart sourceId="github" rows={githubRows ?? []} />
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+        <div className="flex flex-col gap-4 lg:w-2/3">
+          <SourceTile
+            sourceId="weather"
+            source={sourceById.get("weather")}
+            rows={weatherRows ?? []}
+            latestRun={latestRunBySource.get("weather")}
+            size="hero"
+          />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <SourceTile
+              sourceId="crypto"
+              source={sourceById.get("crypto")}
+              rows={cryptoRows ?? []}
+              latestRun={latestRunBySource.get("crypto")}
+            />
+            <SourceTile
+              sourceId="github"
+              source={sourceById.get("github")}
+              rows={githubRows ?? []}
+              latestRun={latestRunBySource.get("github")}
+            />
+          </div>
         </div>
-      </section>
 
-      <section>
-        <SectionHeading title="Run history" subtitle="Every scheduled execution, filterable" />
-        {runs ? <RunHistoryTable runs={runs} /> : <LoadingBlock />}
-      </section>
+        {/* Explicit fixed height (not h-full/stretch, which would create a
+            circular dependency with the left column's natural height) so
+            the ledger's internal overflow-auto has a real bound to scroll
+            within, independent of how tall the source tiles are. */}
+        <div className="lg:h-[624px] lg:w-1/3">
+          <RunHistoryTable runs={runs ?? []} />
+        </div>
+      </div>
 
       <footer className="mt-10 border-t border-border pt-4 text-xs text-text-faint">
-        Data from Open-Meteo, CoinGecko, and the GitHub REST API. Polling every 10–30s.
+        Data from Open-Meteo, CoinGecko, and the GitHub REST API. Polling every 10–30s. ·{" "}
+        {Object.keys(SOURCE_DISPLAY).length} sources.
       </footer>
-    </div>
-  );
-}
-
-function Stat({ label, value, tone }: { label: string; value: string; tone?: "critical" }) {
-  return (
-    <div className="text-right">
-      <div className={`font-numeric text-2xl font-semibold ${tone === "critical" ? "text-critical" : "text-text"}`}>
-        {value}
-      </div>
-      <div className="text-xs uppercase tracking-wide text-text-faint">{label}</div>
-    </div>
-  );
-}
-
-function SectionHeading({ title, subtitle }: { title: string; subtitle: string }) {
-  return (
-    <div className="mb-3">
-      <h2 className="text-base font-semibold text-text">{title}</h2>
-      <p className="text-xs text-text-faint">{subtitle}</p>
-    </div>
-  );
-}
-
-function LoadingBlock() {
-  return (
-    <div className="flex h-32 items-center justify-center rounded-lg border border-border bg-surface text-sm text-text-faint">
-      Loading…
     </div>
   );
 }

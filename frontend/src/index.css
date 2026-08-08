@@ -1,28 +1,35 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Fraunces", ui-serif, Georgia, serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* "Sky": light, atmospheric, restrained -- pale sky blues and warm
-     whites, soft gray-blue ink. Categorical + status hues below are
-     validated against surface #ffffff with the dataviz skill's
+  /* "Dusk Sky": a cool base with one deliberate warm accent -- sky has
+     warm light in it too. Categorical + status hues re-validated
+     against surface #ffffff with the dataviz skill's
      validate_palette.js, not chosen by eye. */
-  --color-bg: #f4f7fb;
+  --color-bg: #f5f1ea;
   --color-surface: #ffffff;
   --color-surface-2: #eef2f8;
-  --color-border: #dde3ec;
-  --color-border-strong: #c5cee0;
+  --color-border: #dce2ec;
+  --color-border-strong: #c3ccdc;
 
-  --color-text: #202632;
-  --color-text-muted: #5b6472;
-  --color-text-faint: #8b93a3;
+  --color-text: #1b2233;
+  --color-text-muted: #545f73;
+  --color-text-faint: #8790a0;
 
-  --color-accent: #2f6fe0;
-  --color-accent-strong: #1f57bd;
-  --color-accent-muted: #e4edfc;
+  --color-accent: #4a5fe0;
+  --color-accent-strong: #3648bf;
+  --color-accent-muted: #e6e9fb;
+
+  /* Warm accent: used sparingly, one element at a time (next-run
+     countdown, the active filter-rail tab). #c97a45 is the text-safe
+     shade (>=3:1 on white); #e8a97c is decorative-only (gradient/tint,
+     never text -- it fails contrast on white on its own). */
+  --color-warm: #c97a45;
+  --color-warm-tint: #f6e9dd;
 
   /* Status: each clears 3:1 WCAG contrast on white (validated
      individually per the skill's own scope note -- status colors are
@@ -37,19 +44,18 @@
   --color-critical: #cc3b47;
   --color-critical-bg: #fbe9ea;
 
-  /* Categorical chart triplet -- the skill's documented light-mode
-     slots 1/3/7 (blue/aqua/violet), re-validated against surface
-     #ffffff: PASS lightness/chroma/CVD/normal-vision, one WARN on aqua
-     contrast (2.82:1) mitigated by the always-present direct-label
-     legend in SourceChart.tsx (never color-alone identity). */
-  --color-series-1: #2a78d6;
+  /* Categorical chart triplet -- indigo/aqua/violet, re-validated
+     against surface #ffffff: PASS lightness/chroma/CVD/normal-vision,
+     one WARN on aqua contrast (2.82:1) mitigated by the always-present
+     direct-label legend in SourceChart.tsx (never color-alone identity). */
+  --color-series-1: #4a5fe0;
   --color-series-2: #1baf7a;
-  --color-series-3: #4a3aa7;
+  --color-series-3: #7a5ac9;
 
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
 
-  --shadow-card: 0 1px 2px rgba(30, 41, 59, 0.04), 0 1px 12px rgba(47, 111, 224, 0.05);
+  --shadow-card: 0 1px 2px rgba(27, 34, 51, 0.04), 0 2px 16px rgba(74, 95, 224, 0.06);
 }
 
 * {
@@ -61,15 +67,14 @@ body {
   color: var(--color-text);
   font-family: var(--font-sans);
   background-color: var(--color-bg);
-  /* Barely-there atmospheric wash -- light through a window, not a
-     hero-banner gradient. Fixed so it reads as one continuous sky
-     behind scrollable content rather than a per-viewport tile. */
-  background-image: radial-gradient(
-      1200px 480px at 18% -10%,
-      rgba(224, 236, 252, 0.55),
-      transparent 60%
-    ),
-    linear-gradient(180deg, #f7fafd 0%, #f1f5fa 55%, #eef2f8 100%);
+  /* Barely-there atmospheric wash -- warm alabaster light fading into
+     pale sky, like dawn light through a window. Two soft radial
+     highlights (one warm top-left, one cool top-right) plus a vertical
+     wash; fixed so it reads as one continuous sky behind scrollable
+     content rather than a per-viewport tile. */
+  background-image: radial-gradient(900px 420px at 12% -8%, rgba(232, 169, 124, 0.16), transparent 62%),
+    radial-gradient(1100px 500px at 88% -12%, rgba(224, 236, 252, 0.65), transparent 60%),
+    linear-gradient(180deg, #f8f4ee 0%, #f2eee7 40%, #eef1f7 100%);
   background-attachment: fixed;
 }
 
