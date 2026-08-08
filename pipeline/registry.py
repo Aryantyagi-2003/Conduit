@@ -8,6 +8,7 @@ from collections.abc import Callable
 
 from pipeline.sources.base import Source, SourceConfig
 from pipeline.sources.crypto import CryptoSource
+from pipeline.sources.github import GithubSource
 from pipeline.sources.weather import WeatherSource
 
 SourceFactory = Callable[[SourceConfig], Source]
@@ -33,6 +34,14 @@ SOURCES: dict[str, tuple[SourceFactory, SourceConfig]] = {
             source_id="crypto",
             interval_seconds=120,
             extra={"assets": {"bitcoin": "BTC", "ethereum": "ETH", "solana": "SOL"}},
+        ),
+    ),
+    "github": (
+        GithubSource,
+        SourceConfig(
+            source_id="github",
+            interval_seconds=1800,
+            extra={"repos": ["torvalds/linux", "python/cpython", "anthropics/claude-code"]},
         ),
     ),
 }
